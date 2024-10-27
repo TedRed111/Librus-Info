@@ -19,23 +19,146 @@
     <link rel="apple-touch-icon" sizes="167x167" href="./icons/icon-167x167.png">
 
     <style>
-        /* ... предыдущие стили ... */
-        
-        .hidden {
-            display: none !important;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        .header {
+            background-color: #2196F3;
+            color: white;
+            padding: 1rem;
+            padding-top: env(safe-area-inset-top);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .content {
             margin-top: 60px;
             padding: 1rem;
-            padding-bottom: 80px; /* Добавлен отступ для навигационной панели */
+            padding-bottom: calc(80px + env(safe-area-inset-bottom)); /* Учитываем высоту навигационной панели */
         }
-        
-        /* Добавлен стиль для сообщения об успешном входе */
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.5rem;
+            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+
+        .nav-item {
+            text-align: center;
+            padding: 0.5rem;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .nav-item.active {
+            color: #2196F3;
+        }
+
+        .login-form {
+            padding: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: #2196F3;
+        }
+
+        .button {
+            width: 100%;
+            padding: 0.8rem;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            transition: background-color 0.2s;
+        }
+
+        .button:active {
+            background: #1976D2;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
         .login-success {
-            color: green;
+            color: #4CAF50;
             margin-top: 1rem;
             text-align: center;
+            padding: 0.5rem;
+            border-radius: 4px;
+            background-color: #E8F5E9;
+            font-size: 0.9rem;
+        }
+
+        @supports (padding-top: env(safe-area-inset-top)) {
+            .header {
+                padding-top: env(safe-area-inset-top);
+            }
+            
+            .nav-bar {
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+
+        /* Анимации для переходов */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -45,7 +168,6 @@
     </div>
 
     <div class="content">
-        <!-- Форма логина -->
         <div class="card login-form" id="loginForm">
             <input type="text" class="input-field" placeholder="Login" id="username">
             <input type="password" class="input-field" placeholder="Hasło" id="password">
@@ -53,7 +175,6 @@
             <div id="loginMessage" class="login-success hidden"></div>
         </div>
 
-        <!-- Контент для авторизованных пользователей -->
         <div id="authenticatedContent" class="hidden">
             <div class="card">
                 <h2>Plan lekcji</h2>
@@ -62,7 +183,6 @@
         </div>
     </div>
 
-    <!-- Навигационная панель -->
     <nav class="nav-bar hidden" id="navBar">
         <a href="#home" class="nav-item active">
             <div>🏠</div>
@@ -96,20 +216,24 @@
             });
         }
 
-        // Функция для управления видимостью элементов
+        // Функция для управления видимостью элементов с анимацией
         function updateUIState(isLoggedIn) {
             const navBar = document.getElementById('navBar');
             const loginForm = document.getElementById('loginForm');
             const authenticatedContent = document.getElementById('authenticatedContent');
             
             if (isLoggedIn) {
-                navBar.classList.remove('hidden');
                 loginForm.classList.add('hidden');
+                navBar.classList.remove('hidden');
                 authenticatedContent.classList.remove('hidden');
+                // Добавляем анимацию
+                navBar.classList.add('fade-in');
+                authenticatedContent.classList.add('fade-in');
             } else {
                 navBar.classList.add('hidden');
-                loginForm.classList.remove('hidden');
                 authenticatedContent.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                loginForm.classList.add('fade-in');
             }
         }
 
@@ -127,8 +251,10 @@
                 loginMessage.textContent = 'Zalogowano pomyślnie!';
                 loginMessage.classList.remove('hidden');
                 
-                // Обновляем UI
-                updateUIState(true);
+                // Обновляем UI через небольшую задержку для отображения сообщения
+                setTimeout(() => {
+                    updateUIState(true);
+                }, 500);
                 
                 // Загружаем данные пользователя
                 loadUserData();
