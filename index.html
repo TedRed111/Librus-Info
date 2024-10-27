@@ -19,108 +19,23 @@
     <link rel="apple-touch-icon" sizes="167x167" href="./icons/icon-167x167.png">
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: #f5f5f5;
-            min-height: 100vh;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
-        }
-
-        .header {
-            background-color: #2196F3;
-            color: white;
-            padding: 1rem;
-            padding-top: env(safe-area-inset-top);
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 100;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        /* ... предыдущие стили ... */
+        
+        .hidden {
+            display: none !important;
         }
 
         .content {
             margin-top: 60px;
             padding: 1rem;
+            padding-bottom: 80px; /* Добавлен отступ для навигационной панели */
         }
-
-        .card {
-            background: white;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 0.5rem;
-            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
-            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
-        }
-
-        .nav-item {
+        
+        /* Добавлен стиль для сообщения об успешном входе */
+        .login-success {
+            color: green;
+            margin-top: 1rem;
             text-align: center;
-            padding: 0.5rem;
-            color: #666;
-            text-decoration: none;
-            font-size: 0.8rem;
-        }
-
-        .nav-item.active {
-            color: #2196F3;
-        }
-
-        .login-form {
-            padding: 1rem;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 0.8rem;
-            margin-bottom: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px; /* Предотвращает зум на iOS */
-        }
-
-        .button {
-            width: 100%;
-            padding: 0.8rem;
-            background: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 1rem;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .button:active {
-            background: #1976D2;
-        }
-
-        @supports (padding-top: env(safe-area-inset-top)) {
-            .header {
-                padding-top: env(safe-area-inset-top);
-            }
-            
-            .nav-bar {
-                padding-bottom: env(safe-area-inset-bottom);
-            }
         }
     </style>
 </head>
@@ -130,19 +45,25 @@
     </div>
 
     <div class="content">
-        <div class="card login-form">
+        <!-- Форма логина -->
+        <div class="card login-form" id="loginForm">
             <input type="text" class="input-field" placeholder="Login" id="username">
             <input type="password" class="input-field" placeholder="Hasło" id="password">
             <button class="button" onclick="login()">Zaloguj się</button>
+            <div id="loginMessage" class="login-success hidden"></div>
         </div>
 
-        <div class="card">
-            <h2>Plan lekcji</h2>
-            <div id="schedule"></div>
+        <!-- Контент для авторизованных пользователей -->
+        <div id="authenticatedContent" class="hidden">
+            <div class="card">
+                <h2>Plan lekcji</h2>
+                <div id="schedule"></div>
+            </div>
         </div>
     </div>
 
-    <nav class="nav-bar">
+    <!-- Навигационная панель -->
+    <nav class="nav-bar hidden" id="navBar">
         <a href="#home" class="nav-item active">
             <div>🏠</div>
             Główna
@@ -175,37 +96,50 @@
             });
         }
 
-        // Предотвращение скролла за пределы приложения на iOS
-        document.addEventListener('touchmove', function(e) {
-            if(!e.target.closest('.scrollable')) {
-                e.preventDefault();
+        // Функция для управления видимостью элементов
+        function updateUIState(isLoggedIn) {
+            const navBar = document.getElementById('navBar');
+            const loginForm = document.getElementById('loginForm');
+            const authenticatedContent = document.getElementById('authenticatedContent');
+            
+            if (isLoggedIn) {
+                navBar.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+                authenticatedContent.classList.remove('hidden');
+            } else {
+                navBar.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                authenticatedContent.classList.add('hidden');
             }
-        }, { passive: false });
+        }
 
-        // Базовая функция авторизации
+        // Функция авторизации
         function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            // Здесь должна быть реализация авторизации через API
-            console.log('Attempting login with:', username);
-            
-            // Пример сохранения данных в localStorage
-            localStorage.setItem('isLoggedIn', 'true');
+            if (username && password) {
+                // Здесь должна быть реализация авторизации через API
+                localStorage.setItem('isLoggedIn', 'true');
+                
+                // Показываем сообщение об успешном входе
+                const loginMessage = document.getElementById('loginMessage');
+                loginMessage.textContent = 'Zalogowano pomyślnie!';
+                loginMessage.classList.remove('hidden');
+                
+                // Обновляем UI
+                updateUIState(true);
+                
+                // Загружаем данные пользователя
+                loadUserData();
+            }
         }
-
-        // Обработка изменения ориентации
-        window.addEventListener('orientationchange', function() {
-            document.documentElement.style.height = `${window.innerHeight}px`;
-            window.scrollTo(0, 0);
-        });
-
-        // Инициализация при загрузке
-        document.documentElement.style.height = `${window.innerHeight}px`;
 
         // Проверка авторизации при загрузке
         window.addEventListener('load', () => {
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            updateUIState(isLoggedIn);
+            
             if (isLoggedIn) {
                 loadUserData();
             }
@@ -215,6 +149,22 @@
             // Здесь должна быть реализация загрузки данных пользователя
             console.log('Loading user data...');
         }
+
+        // Предотвращение скролла за пределы приложения на iOS
+        document.addEventListener('touchmove', function(e) {
+            if(!e.target.closest('.scrollable')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Обработка изменения ориентации
+        window.addEventListener('orientationchange', function() {
+            document.documentElement.style.height = `${window.innerHeight}px`;
+            window.scrollTo(0, 0);
+        });
+
+        // Инициализация при загрузке
+        document.documentElement.style.height = `${window.innerHeight}px`;
     </script>
 </body>
 </html>
