@@ -1,11 +1,11 @@
 // sw.js
 const CACHE_NAME = 'school-diary-v1';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/manifest.json',
-    '/icons/icon-192x192.png',
-    '/icons/icon-512x512.png'
+    './',               // Было "/", меняем на "./"
+    './index.html',     // Добавляем "./"
+    './manifest.json',  // Добавляем "./"
+    './icons/icon-192x192.png',  // Добавляем "./"
+    './icons/icon-512x512.png'   // Добавляем "./"
 ];
 
 self.addEventListener('install', event => {
