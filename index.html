@@ -1,15 +1,23 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#2196F3">
-    <title>Электронный дневник</title>
+    <title>Librus Info</title>
     
-    <!-- PWA manifest -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <!-- PWA мета-теги -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Librus Info">
     
+    <link rel="manifest" href="./manifest.json">
+    <!-- Иконки для iOS -->
+    <link rel="apple-touch-icon" href="./icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="./icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180x180.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="./icons/icon-167x167.png">
+
     <style>
         * {
             margin: 0;
@@ -20,12 +28,18 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background-color: #f5f5f5;
+            min-height: 100vh;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
 
         .header {
             background-color: #2196F3;
             color: white;
             padding: 1rem;
+            padding-top: env(safe-area-inset-top);
             position: fixed;
             top: 0;
             width: 100%;
@@ -54,6 +68,7 @@
             display: flex;
             justify-content: space-around;
             padding: 0.5rem;
+            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
             box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
         }
 
@@ -79,6 +94,7 @@
             margin-bottom: 1rem;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-size: 16px; /* Предотвращает зум на iOS */
         }
 
         .button {
@@ -90,13 +106,14 @@
             border-radius: 4px;
             font-size: 1rem;
             cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .button:active {
             background: #1976D2;
         }
 
-        @media (display-mode: standalone) {
+        @supports (padding-top: env(safe-area-inset-top)) {
             .header {
                 padding-top: env(safe-area-inset-top);
             }
@@ -109,18 +126,18 @@
 </head>
 <body>
     <div class="header">
-        <h1>Электронный дневник</h1>
+        <h1>Librus Info</h1>
     </div>
 
     <div class="content">
         <div class="card login-form">
-            <input type="text" class="input-field" placeholder="Логин" id="username">
-            <input type="password" class="input-field" placeholder="Пароль" id="password">
-            <button class="button" onclick="login()">Войти</button>
+            <input type="text" class="input-field" placeholder="Login" id="username">
+            <input type="password" class="input-field" placeholder="Hasło" id="password">
+            <button class="button" onclick="login()">Zaloguj się</button>
         </div>
 
         <div class="card">
-            <h2>Расписание</h2>
+            <h2>Plan lekcji</h2>
             <div id="schedule"></div>
         </div>
     </div>
@@ -128,19 +145,19 @@
     <nav class="nav-bar">
         <a href="#home" class="nav-item active">
             <div>🏠</div>
-            Главная
+            Główna
         </a>
         <a href="#schedule" class="nav-item">
             <div>📅</div>
-            Расписание
+            Plan
         </a>
         <a href="#grades" class="nav-item">
             <div>📊</div>
-            Оценки
+            Oceny
         </a>
         <a href="#profile" class="nav-item">
             <div>👤</div>
-            Профиль
+            Profil
         </a>
     </nav>
 
@@ -150,13 +167,20 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
                     .then(registration => {
-                        console.log('ServiceWorker registered:', registration);
+                        console.log('ServiceWorker registration successful:', registration.scope);
                     })
                     .catch(error => {
-                        console.log('ServiceWorker registration failed:', error);
+                        console.error('ServiceWorker registration failed:', error);
                     });
             });
         }
+
+        // Предотвращение скролла за пределы приложения на iOS
+        document.addEventListener('touchmove', function(e) {
+            if(!e.target.closest('.scrollable')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
 
         // Базовая функция авторизации
         function login() {
@@ -170,11 +194,19 @@
             localStorage.setItem('isLoggedIn', 'true');
         }
 
+        // Обработка изменения ориентации
+        window.addEventListener('orientationchange', function() {
+            document.documentElement.style.height = `${window.innerHeight}px`;
+            window.scrollTo(0, 0);
+        });
+
+        // Инициализация при загрузке
+        document.documentElement.style.height = `${window.innerHeight}px`;
+
         // Проверка авторизации при загрузке
         window.addEventListener('load', () => {
             const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
             if (isLoggedIn) {
-                // Загрузка данных пользователя
                 loadUserData();
             }
         });

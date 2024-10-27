@@ -1,18 +1,25 @@
-// sw.js
-const CACHE_NAME = 'school-diary-v1';
+const CACHE_NAME = 'librus-info-v1';
 const urlsToCache = [
-    './',               // Было "/", меняем на "./"
-    './index.html',     // Добавляем "./"
-    './manifest.json',  // Добавляем "./"
-    './icons/icon-192x192.png',  // Добавляем "./"
-    './icons/icon-512x512.png'   // Добавляем "./"
+    './',
+    './index.html',
+    './manifest.json',
+    './icons/android-chrome-192x192.png',
+    './icons/android-chrome-512x512.png',
+    './icons/apple-touch-icon.png',
+    './icons/favicon-16x16.png',
+    './icons/favicon-32x32.png'
 ];
 
 self.addEventListener('install', event => {
+    console.log('Service Worker installing.');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
+                console.log('Service Worker caching files.');
                 return cache.addAll(urlsToCache);
+            })
+            .catch(error => {
+                console.error('Service Worker cache error:', error);
             })
     );
 });
