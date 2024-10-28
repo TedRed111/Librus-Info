@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0066cc">
     <meta name="description" content="Librus Synergia Login">
-    
+   
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-    
+   
     <title>Librus Synergia</title>
-    
+   
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+       
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -28,7 +28,7 @@
             background-color: #f5f5f5;
             padding: 20px;
         }
-        
+       
         .container {
             text-align: center;
             max-width: 600px;
@@ -37,12 +37,12 @@
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        
+       
         .logo {
             max-width: 200px;
             margin-bottom: 20px;
         }
-        
+       
         .login-button {
             display: inline-block;
             background-color: #0066cc;
@@ -56,27 +56,23 @@
             cursor: pointer;
             transition: background-color 0.3s;
         }
-        
+       
         .login-button:hover {
             background-color: #0052a3;
         }
-
         .instructions {
             margin: 20px 0;
             text-align: left;
             color: #666;
             line-height: 1.6;
         }
-
         .instructions ol {
             margin-left: 20px;
             margin-top: 10px;
         }
-
         .instructions li {
             margin-bottom: 10px;
         }
-
         .highlight {
             background-color: #f0f7ff;
             padding: 2px 5px;
@@ -84,34 +80,112 @@
             color: #0066cc;
             font-weight: 500;
         }
+
+        #status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .status-info {
+            background-color: #e3f2fd;
+            color: #0066cc;
+        }
+
+        .status-error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <img src="icons/icon-192x192.png" alt="Librus Logo" class="logo">
         <h1>Librus Synergia</h1>
-        
+       
         <div class="instructions">
             <p>Aby zalogować się do systemu Librus Synergia:</p>
             <ol>
                 <li>Kliknij przycisk <span class="highlight">Zaloguj się</span> poniżej</li>
-                <li>Na stronie głównej Librus kliknij <span class="highlight">Zaloguj się</span></li>
-                <li>Wybierz opcję <span class="highlight">Synergia</span></li>
+                <li>Poczekaj na automatyczne przekierowanie do strony logowania</li>
             </ol>
         </div>
-
         <button class="login-button" id="loginButton">Zaloguj się</button>
+        <div id="status"></div>
     </div>
-
     <script>
-        document.getElementById('loginButton').addEventListener('click', function() {
-            const url = 'https://portal.librus.pl/rodzina';
+        const STATUS_ELEMENT = document.getElementById('status');
+        
+        function showStatus(message, isError = false) {
+            STATUS_ELEMENT.textContent = message;
+            STATUS_ELEMENT.style.display = 'block';
+            STATUS_ELEMENT.className = isError ? 'status-error' : 'status-info';
+        }
 
-            // Проверяем, запущено ли как PWA
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                window.open(url, '_blank', 'noopener,noreferrer');
-            } else {
-                window.location.href = url;
+        document.getElementById('loginButton').addEventListener('click', async function() {
+            try {
+                showStatus('Przekierowywanie do strony logowania...');
+                
+                // Открываем страницу портала
+                const portalWindow = window.open('https://portal.librus.pl/rodzina', '_blank');
+                
+                if (!portalWindow) {
+                    throw new Error('Nie można otworzyć okna. Sprawdź, czy nie są zablokowane wyskakujące okienka.');
+                }
+
+                // Инъекция скрипта для автоматического перехода
+                const injectionScript = `
+                    function findAndClickLoginButton() {
+                        const loginButtons = Array.from(document.querySelectorAll('a')).filter(a => 
+                            a.href === 'https://portal.librus.pl/rodzina/synergia/loguj' ||
+                            a.textContent.includes('Zaloguj')
+                        );
+                        
+                        if (loginButtons.length > 0) {
+                            loginButtons[0].click();
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    // Пытаемся найти кнопку несколько раз
+                    let attempts = 0;
+                    const maxAttempts = 10;
+                    
+                    function attemptToFind() {
+                        if (attempts >= maxAttempts) {
+                            window.postMessage({ type: 'LOGIN_FAILED' }, '*');
+                            return;
+                        }
+                        
+                        if (!findAndClickLoginButton()) {
+                            attempts++;
+                            setTimeout(attemptToFind, 500);
+                        } else {
+                            window.postMessage({ type: 'LOGIN_SUCCESS' }, '*');
+                        }
+                    }
+
+                    // Начинаем поиск после полной загрузки страницы
+                    if (document.readyState === 'complete') {
+                        attemptToFind();
+                    } else {
+                        window.addEventListener('load', attemptToFind);
+                    }
+                `;
+
+                // Ждем загрузки страницы и инъектируем скрипт
+                setTimeout(() => {
+                    try {
+                        portalWindow.eval(injectionScript);
+                    } catch (e) {
+                        showStatus('Nie można automatycznie przekierować. Proszę kliknąć przycisk logowania ręcznie.', true);
+                    }
+                }, 1000);
+
+            } catch (error) {
+                showStatus(error.message, true);
             }
         });
 
