@@ -59,7 +59,6 @@
             margin-bottom: 20px;
         }
         
-        /* Стили для оффлайн-сообщения */
         .offline-message {
             display: none;
             position: fixed;
@@ -79,7 +78,6 @@
     </style>
 </head>
 <body>
-    <!-- Оффлайн сообщение -->
     <div class="offline-message">
         Brak połączenia z internetem
     </div>
@@ -88,7 +86,7 @@
         <img src="icons/icon-192x192.png" alt="Librus Logo" class="logo">
         <h1>Librus Synergia</h1>
         <p>Kliknij poniżej, aby się zalogować</p>
-        <button class="login-button" onclick="openLibrus()">Zaloguj się</button>
+        <button class="login-button" id="loginButton">Zaloguj się</button>
     </div>
 
     <script>
@@ -114,17 +112,28 @@
             document.body.classList.add('offline');
         });
 
-        // Функция открытия Librus
-        function openLibrus() {
-            // Проверяем, поддерживает ли браузер PWA
+        // Прямой переход на страницу логина
+        document.getElementById('loginButton').addEventListener('click', function() {
+            const loginUrl = 'https://portal.librus.pl/rodzina/synergia/loguj';
+            
+            // Проверяем, запущено ли приложение как PWA
             if (window.matchMedia('(display-mode: standalone)').matches) {
-                // Если приложение запущено как PWA, открываем в новом окне
-                window.open('https://portal.librus.pl/rodzina/synergia/loguj', '_blank', 'noopener,noreferrer');
+                // В режиме PWA открываем в новом окне
+                window.open(loginUrl, '_blank', 'noopener,noreferrer');
             } else {
-                // Если обычный браузер, просто перенаправляем
-                window.location.href = 'https://portal.librus.pl/rodzina/synergia/loguj';
+                // В обычном режиме делаем прямой переход
+                window.location.replace(loginUrl);
             }
-        }
+        });
+
+        // Автоматический переход при запуске
+        window.addEventListener('load', function() {
+            // Проверяем параметры URL
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('direct') === 'true') {
+                document.getElementById('loginButton').click();
+            }
+        });
     </script>
 </body>
 </html>
