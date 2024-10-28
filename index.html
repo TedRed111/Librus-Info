@@ -6,10 +6,7 @@
     <meta name="theme-color" content="#0066cc">
     <meta name="description" content="Librus Synergia Login">
     
-    <!-- PWA манифест -->
     <link rel="manifest" href="manifest.json">
-    
-    <!-- Иконки для PWA -->
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     
@@ -29,11 +26,21 @@
             align-items: center;
             min-height: 100vh;
             background-color: #f5f5f5;
+            padding: 20px;
         }
         
         .container {
             text-align: center;
-            padding: 20px;
+            max-width: 600px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
         }
         
         .login-button {
@@ -53,87 +60,69 @@
         .login-button:hover {
             background-color: #0052a3;
         }
-        
-        .logo {
-            max-width: 200px;
-            margin-bottom: 20px;
+
+        .instructions {
+            margin: 20px 0;
+            text-align: left;
+            color: #666;
+            line-height: 1.6;
         }
-        
-        .offline-message {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: #f44336;
-            color: white;
-            text-align: center;
-            padding: 1em;
-            z-index: 1000;
+
+        .instructions ol {
+            margin-left: 20px;
+            margin-top: 10px;
         }
-        
-        .offline .offline-message {
-            display: block;
+
+        .instructions li {
+            margin-bottom: 10px;
+        }
+
+        .highlight {
+            background-color: #f0f7ff;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #0066cc;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
-    <div class="offline-message">
-        Brak połączenia z internetem
-    </div>
-    
     <div class="container">
         <img src="icons/icon-192x192.png" alt="Librus Logo" class="logo">
         <h1>Librus Synergia</h1>
-        <p>Kliknij poniżej, aby się zalogować</p>
+        
+        <div class="instructions">
+            <p>Aby zalogować się do systemu Librus Synergia:</p>
+            <ol>
+                <li>Kliknij przycisk <span class="highlight">Zaloguj się</span> poniżej</li>
+                <li>Na stronie głównej Librus kliknij <span class="highlight">Zaloguj się</span></li>
+                <li>Wybierz opcję <span class="highlight">Synergia</span></li>
+            </ol>
+        </div>
+
         <button class="login-button" id="loginButton">Zaloguj się</button>
     </div>
 
     <script>
-        // Регистрация Service Worker
+        document.getElementById('loginButton').addEventListener('click', function() {
+            const url = 'https://portal.librus.pl/rodzina';
+
+            // Проверяем, запущено ли как PWA
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                window.open(url, '_blank', 'noopener,noreferrer');
+            } else {
+                window.location.href = url;
+            }
+        });
+
+        // Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('service-worker.js')
-                    .then(function(registration) {
-                        console.log('ServiceWorker registration successful');
-                    })
-                    .catch(function(err) {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
+                    .then(registration => console.log('ServiceWorker registered'))
+                    .catch(err => console.log('ServiceWorker registration failed: ', err));
             });
         }
-
-        // Обработка состояния оффлайн/онлайн
-        window.addEventListener('online', function() {
-            document.body.classList.remove('offline');
-        });
-
-        window.addEventListener('offline', function() {
-            document.body.classList.add('offline');
-        });
-
-        // Прямой переход на страницу логина
-        document.getElementById('loginButton').addEventListener('click', function() {
-            const loginUrl = 'https://portal.librus.pl/rodzina/synergia/loguj';
-            
-            // Проверяем, запущено ли приложение как PWA
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                // В режиме PWA открываем в новом окне
-                window.open(loginUrl, '_blank', 'noopener,noreferrer');
-            } else {
-                // В обычном режиме делаем прямой переход
-                window.location.replace(loginUrl);
-            }
-        });
-
-        // Автоматический переход при запуске
-        window.addEventListener('load', function() {
-            // Проверяем параметры URL
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('direct') === 'true') {
-                document.getElementById('loginButton').click();
-            }
-        });
     </script>
 </body>
 </html>
