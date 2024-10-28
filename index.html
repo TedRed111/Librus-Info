@@ -13,11 +13,6 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     
-    <!-- Предотвращение кэширования -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
     <title>Librus Synergia</title>
     
     <style>
@@ -27,36 +22,41 @@
             box-sizing: border-box;
         }
         
-        html, body {
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f5f5f5;
         }
         
-        #librus-container {
-            width: 100%;
-            height: 100vh;
+        .container {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .login-button {
+            display: inline-block;
+            background-color: #0066cc;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 18px;
+            margin: 20px 0;
             border: none;
-            overflow: hidden;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
         
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
+        .login-button:hover {
+            background-color: #0052a3;
         }
         
-        /* Spinner для загрузки */
-        .loader {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: none;
-        }
-        
-        .loader.active {
-            display: block;
+        .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
         }
         
         /* Стили для оффлайн-сообщения */
@@ -84,26 +84,11 @@
         Brak połączenia z internetem
     </div>
     
-    <!-- Контейнер для iframe -->
-    <div id="librus-container">
-        <iframe 
-            src="https://portal.librus.pl/rodzina/synergia/loguj" 
-            title="Librus Synergia Login"
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
-            loading="eager">
-        </iframe>
-    </div>
-    
-    <!-- Спиннер загрузки -->
-    <div class="loader">
-        <svg width="50" height="50" viewBox="0 0 50 50">
-            <circle cx="25" cy="25" r="20" fill="none" stroke="#0066cc" stroke-width="5">
-                <animate attributeName="stroke-dasharray" dur="1.5s" repeatCount="indefinite"
-                    values="1,150;90,150;90,150"/>
-                <animate attributeName="stroke-dashoffset" dur="1.5s" repeatCount="indefinite"
-                    values="0;-35;-124"/>
-            </circle>
-        </svg>
+    <div class="container">
+        <img src="icons/icon-192x192.png" alt="Librus Logo" class="logo">
+        <h1>Librus Synergia</h1>
+        <p>Kliknij poniżej, aby się zalogować</p>
+        <button class="login-button" onclick="openLibrus()">Zaloguj się</button>
     </div>
 
     <script>
@@ -129,28 +114,17 @@
             document.body.classList.add('offline');
         });
 
-        // Обработка загрузки iframe
-        const iframe = document.querySelector('iframe');
-        const loader = document.querySelector('.loader');
-
-        iframe.addEventListener('load', function() {
-            loader.classList.remove('active');
-        });
-
-        loader.classList.add('active');
-
-        // Обработка ошибок загрузки iframe
-        iframe.addEventListener('error', function() {
-            loader.classList.remove('active');
-            alert('Nie można załadować strony Librus. Sprawdź połączenie z internetem.');
-        });
-
-        // Предотвращение масштабирования на мобильных устройствах
-        document.addEventListener('touchmove', function(event) {
-            if (event.scale !== 1) {
-                event.preventDefault();
+        // Функция открытия Librus
+        function openLibrus() {
+            // Проверяем, поддерживает ли браузер PWA
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                // Если приложение запущено как PWA, открываем в новом окне
+                window.open('https://portal.librus.pl/rodzina/synergia/loguj', '_blank', 'noopener,noreferrer');
+            } else {
+                // Если обычный браузер, просто перенаправляем
+                window.location.href = 'https://portal.librus.pl/rodzina/synergia/loguj';
             }
-        }, { passive: false });
+        }
     </script>
 </body>
 </html>
